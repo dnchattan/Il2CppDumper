@@ -50,8 +50,12 @@ namespace Il2CppDumper
                             il2cppPath = arg;
                         }
                     }
-                    else if (Directory.Exists(arg))
+                    else
                     {
+                        if (!Directory.Exists(arg))
+                        {
+                            Directory.CreateDirectory(arg);
+                        }
                         outputDir = Path.GetFullPath(arg) + Path.DirectorySeparatorChar;
                     }
                 }
@@ -233,19 +237,19 @@ namespace Il2CppDumper
             var decompiler = new Il2CppDecompiler(executor);
             decompiler.Decompile(config, outputDir);
             Console.WriteLine("Done!");
-            if (config.GenerateStruct)
-            {
-                Console.WriteLine("Generate struct...");
-                var scriptGenerator = new StructGenerator(executor);
-                scriptGenerator.WriteScript(outputDir);
-                Console.WriteLine("Done!");
-            }
-            if (config.GenerateDummyDll)
-            {
-                Console.WriteLine("Generate dummy dll...");
-                DummyAssemblyExporter.Export(executor, outputDir, config.DummyDllAddToken);
-                Console.WriteLine("Done!");
-            }
+            // if (config.GenerateStruct)
+            // {
+            //     Console.WriteLine("Generate struct...");
+            //     var scriptGenerator = new StructGenerator(executor);
+            //     scriptGenerator.WriteScript(outputDir);
+            //     Console.WriteLine("Done!");
+            // }
+            // if (config.GenerateDummyDll)
+            // {
+            //     Console.WriteLine("Generate dummy dll...");
+            //     DummyAssemblyExporter.Export(executor, outputDir, config.DummyDllAddToken);
+            //     Console.WriteLine("Done!");
+            // }
         }
     }
 }
