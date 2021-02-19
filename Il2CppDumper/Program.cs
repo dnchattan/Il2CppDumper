@@ -3,9 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Newtonsoft.Json;
-#if NETFRAMEWORK
-using System.Windows.Forms;
-#endif
 
 namespace Il2CppDumper
 {
@@ -54,9 +51,17 @@ namespace Il2CppDumper
                     {
                         if (!Directory.Exists(arg))
                         {
-                            Directory.CreateDirectory(arg);
+                            // create output directory on demand if we already got both other inputs
+                            if (il2cppPath != null && metadataPath != null)
+                            {
+                                Directory.CreateDirectory(arg);
+                                outputDir = Path.GetFullPath(arg) + Path.DirectorySeparatorChar;
+                            }
                         }
-                        outputDir = Path.GetFullPath(arg) + Path.DirectorySeparatorChar;
+                        else
+                        {
+                            outputDir = Path.GetFullPath(arg) + Path.DirectorySeparatorChar;
+                        }
                     }
                 }
             }
@@ -64,30 +69,7 @@ namespace Il2CppDumper
             {
                 outputDir = AppDomain.CurrentDomain.BaseDirectory;
             }
-#if NETFRAMEWORK
-            if (il2cppPath == null)
-            {
-                var ofd = new OpenFileDialog();
-                ofd.Filter = "Il2Cpp binary file|*.*";
-                if (ofd.ShowDialog() == DialogResult.OK)
-                {
-                    il2cppPath = ofd.FileName;
-                    ofd.Filter = "global-metadata|global-metadata.dat";
-                    if (ofd.ShowDialog() == DialogResult.OK)
-                    {
-                        metadataPath = ofd.FileName;
-                    }
-                    else
-                    {
-                        return;
-                    }
-                }
-                else
-                {
-                    return;
-                }
-            }
-#endif
+
             if (il2cppPath == null)
             {
                 ShowHelp();
