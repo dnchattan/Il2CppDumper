@@ -18,6 +18,10 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <DefaultItemExcludes>$(DefaultItemExcludes);.out\**\*</DefaultItemExcludes>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Update="config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
