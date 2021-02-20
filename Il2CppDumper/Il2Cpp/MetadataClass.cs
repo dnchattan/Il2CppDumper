@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Il2CppDumper
 {
@@ -107,6 +109,7 @@ namespace Il2CppDumper
 
         public int typeStart;
         public uint typeCount;
+        public IEnumerable<int> TypeRange { get { return Enumerable.Range(typeStart, (int)typeCount); } }
 
         [Version(Min = 24)]
         public int exportedTypeStart;

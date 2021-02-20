@@ -9,6 +9,7 @@ namespace Il2CppDumper
         public string Parent;
         public List<StructFieldInfo> Fields = new List<StructFieldInfo>();
         public List<StructFieldInfo> StaticFields = new List<StructFieldInfo>();
+        public List<StructStaticMethodInfo> StaticMethods = new List<StructStaticMethodInfo>();
         public List<StructVTableMethodInfo> VTableMethod = new List<StructVTableMethodInfo>();
         public List<StructRGCTXInfo> RGCTXs = new List<StructRGCTXInfo>();
     }
@@ -19,6 +20,13 @@ namespace Il2CppDumper
         public string FieldName;
         public bool IsValueType;
         public bool IsCustomType;
+        public int Offset;
+    }
+
+    public class StructStaticMethodInfo
+    {
+        public ulong Address;
+        public string Name;
     }
 
     public class StructVTableMethodInfo
