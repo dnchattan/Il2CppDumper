@@ -19,7 +19,6 @@ namespace Il2CppDumper
         private readonly Dictionary<string, List<StructStaticMethodInfo>> TypeNameToStaticMethods = new Dictionary<string, List<StructStaticMethodInfo>>();
 
         public List<StructInfo> StructInfoList = new List<StructInfo>();
-        public List<StructStaticMethodInfo> StaticMethods = new List<StructStaticMethodInfo>();
 
         private class UniqueName
         {
@@ -92,7 +91,10 @@ namespace Il2CppDumper
             structInfo.TypeName = metadata.UniqueName;
             structInfo.IsValueType = typeDef.IsValueType;
             AddCommonStructProperties(typeDef, structInfo);
-            AddRGCTX(structInfo, typeDef, metadata);
+            if (config.DumpRGCTX)
+            {
+                AddRGCTX(structInfo, typeDef, metadata);
+            }
         }
 
         private void AddGenericClassStruct(ulong pointer)
@@ -141,7 +143,6 @@ namespace Il2CppDumper
                 var typeName = executor.GetTypeDefName(typeDef, true, true);
                 staticMethod.Address = il2Cpp.GetRVA(il2Cpp.metadataUsages[metadataUsageIndex]);
                 staticMethod.Name = metadata.GetStringFromIndex(methodDef.nameIndex);
-                StaticMethods.Add(staticMethod);
 
                 if (!TypeNameToStaticMethods.ContainsKey(typeName))
                 {
