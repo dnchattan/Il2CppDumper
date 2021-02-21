@@ -185,6 +185,18 @@ namespace Il2CppDumper
             return $"<{string.Join(", ", genericParameterNames)}>";
         }
 
+        public Il2CppType[] GetGenericInstParamList(Il2CppGenericInst genericInst)
+        {
+            var genericParameterNames = new Il2CppType[genericInst.type_argc];
+            var pointers = il2Cpp.MapVATR<ulong>(genericInst.type_argv, genericInst.type_argc);
+            for (int i = 0; i < genericInst.type_argc; i++)
+            {
+                var il2CppType = il2Cpp.GetIl2CppType(pointers[i]);
+                genericParameterNames[i] = il2CppType;
+            }
+            return genericParameterNames;
+        }
+
         public string GetGenericContainerParams(Il2CppGenericContainer genericContainer)
         {
             var genericParameterNames = new List<string>();

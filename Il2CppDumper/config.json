@@ -1,15 +1,6 @@
 {
   "DumpMethod": true,
   "DumpField": true,
-  "DumpProperty": true,
-  "DumpAttribute": true,
-  "DumpFieldOffset": true,
-  "DumpMethodOffset": true,
-  "DumpTypeDefIndex": true,
-  "GenerateDummyDll": false,
-  "GenerateStruct": true,
-  "DummyDllAddToken": true,
-  "RequireAnyKey": false,
   "ForceIl2CppVersion": false,
   "ForceVersion": 16
 }
