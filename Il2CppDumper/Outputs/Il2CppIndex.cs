@@ -560,7 +560,7 @@ namespace Il2CppDumper
             while (typeName.EndsWith('*'))
             {
                 ++indirection;
-                typeName = typeName.Substring(0, typeName.Length - 2);
+                typeName = typeName.Substring(0, typeName.Length - 1);
             }
             return (typeName, indirection);
         }
