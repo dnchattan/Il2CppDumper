@@ -22,6 +22,7 @@ namespace Il2CppDumper
         public bool IsValueType;
         public bool IsCustomType;
         public int Offset;
+        public int Indirection;
     }
 
     public class StructStaticMethodInfo

@@ -237,7 +237,9 @@ namespace Il2CppDumper
                         continue;
                     }
                     var structFieldInfo = new StructFieldInfo();
-                    structFieldInfo.FieldTypeName = ParseType(fieldType, context);
+                    var (typeName, indirection) = ParseTypeInfo(fieldType, context);
+                    structFieldInfo.FieldTypeName = typeName;
+                    structFieldInfo.Indirection = indirection;
                     var fieldName = metadata.GetStringFromIndex(fieldDef.nameIndex);
                     if (!cache.Add(fieldName))
                     {
@@ -548,6 +550,18 @@ namespace Il2CppDumper
                 default:
                     throw new NotSupportedException();
             }
+        }
+
+        private (string, int) ParseTypeInfo(Il2CppType il2CppType, Il2CppGenericContext context = null)
+        {
+            int indirection = 1;
+            string typeName = ParseType(il2CppType, context);
+            while (typeName.EndsWith('*'))
+            {
+                ++indirection;
+                typeName = typeName.Substring(0, typeName.Length - 2);
+            }
+            return (typeName, indirection);
         }
 
         private string ParseType(Il2CppType il2CppType, Il2CppGenericContext context = null)
