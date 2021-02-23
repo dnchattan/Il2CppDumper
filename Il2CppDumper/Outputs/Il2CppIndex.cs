@@ -113,6 +113,7 @@ namespace Il2CppDumper
 
         private void AddCommonStructProperties(Il2CppTypeDefinition typeDef, StructInfo structInfo)
         {
+            structInfo.ImageName = TypeMetadata[typeDef].ImageName;
             structInfo.IsValueType = typeDef.IsValueType;
             AddParents(typeDef, structInfo);
             if (config.DumpField)

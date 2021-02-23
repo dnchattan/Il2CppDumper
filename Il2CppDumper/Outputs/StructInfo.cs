@@ -4,6 +4,7 @@ namespace Il2CppDumper
 {
     public class StructInfo
     {
+        public string ImageName;
         public string TypeName;
         public bool IsValueType;
         public bool IsGeneric;
