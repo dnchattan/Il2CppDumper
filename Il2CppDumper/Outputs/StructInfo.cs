@@ -1,6 +1,4 @@
-﻿using System;
-using System.Text;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Il2CppDumper
 {
@@ -8,6 +6,7 @@ namespace Il2CppDumper
     {
         public string TypeName;
         public bool IsValueType;
+        public bool IsGeneric;
         public string Parent;
         public List<StructFieldInfo> Fields = new List<StructFieldInfo>();
         public List<StructFieldInfo> StaticFields = new List<StructFieldInfo>();

@@ -89,8 +89,8 @@ namespace Il2CppDumper
             var structInfo = new StructInfo();
             StructInfoList.Add(structInfo);
             structInfo.TypeName = metadata.UniqueName;
-            structInfo.IsValueType = typeDef.IsValueType;
             AddCommonStructProperties(typeDef, structInfo);
+            structInfo.IsGeneric = typeDef.genericContainerIndex >= 0;
             if (config.DumpRGCTX)
             {
                 AddRGCTX(structInfo, typeDef, metadata);
@@ -108,12 +108,12 @@ namespace Il2CppDumper
             var structInfo = new StructInfo();
             StructInfoList.Add(structInfo);
             structInfo.TypeName = lookupGenericClassName[pointer];
-            structInfo.IsValueType = typeDef.IsValueType;
             AddCommonStructProperties(typeDef, structInfo);
         }
 
         private void AddCommonStructProperties(Il2CppTypeDefinition typeDef, StructInfo structInfo)
         {
+            structInfo.IsValueType = typeDef.IsValueType;
             AddParents(typeDef, structInfo);
             if (config.DumpField)
             {
