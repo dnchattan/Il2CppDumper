@@ -6,7 +6,6 @@ using System.Text;
 
 namespace Il2CppDumper
 {
-
     public class StructJsonGenerator
     {
         private Il2CppExecutor executor;
