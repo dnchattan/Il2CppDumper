@@ -25,9 +25,9 @@ namespace Il2CppDumper
             {12,"float"},
             {13,"double"},
             {14,"string"},
-            {22,"TypedReference"},
-            {24,"IntPtr"},
-            {25,"UIntPtr"},
+            {22,"intptr_t"},
+            {24,"intptr_t"},
+            {25,"uintptr_t"},
             {28,"object"},
         };
         public ulong[] customAttributeGenerators;
@@ -192,6 +192,7 @@ namespace Il2CppDumper
                     }
                 default:
                     {
+                        typeInfo.IsPrimitive = true;
                         typeInfo.TypeName = TypeString[(int)il2CppType.type];
                         return typeInfo;
                     }
