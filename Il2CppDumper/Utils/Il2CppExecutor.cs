@@ -146,6 +146,10 @@ namespace Il2CppDumper
                         var arrayType = il2Cpp.MapVATR<Il2CppArrayType>(il2CppType.data.array);
                         var elementType = il2Cpp.GetIl2CppType(arrayType.etype);
                         var elementTypeInfo = GetTypeInfo(elementType);
+                        if (string.IsNullOrEmpty(elementTypeInfo.TypeName))
+                        {
+                            System.Diagnostics.Debugger.Break();
+                        }
                         // hack: too lazy to special case consumption of array types
                         elementTypeInfo.IsArray = true;
                         return elementTypeInfo;
@@ -157,6 +161,10 @@ namespace Il2CppDumper
                     {
                         var elementType = il2Cpp.GetIl2CppType(il2CppType.data.type);
                         var elementTypeInfo = GetTypeInfo(elementType);
+                        if (string.IsNullOrEmpty(elementTypeInfo.TypeName))
+                        {
+                            System.Diagnostics.Debugger.Break();
+                        }
                         elementTypeInfo.IsArray = true;
                         return elementTypeInfo;
                         // typeInfo.ElementType = GetTypeInfo(elementType);

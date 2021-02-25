@@ -92,7 +92,7 @@ namespace Il2CppDumper
         {
             get
             {
-                if (IsArray) return null;
+                // if (IsArray) return null;
                 return _declaringType;
             }
             set
@@ -109,7 +109,7 @@ namespace Il2CppDumper
         {
             get
             {
-                if (IsArray) return null;
+                // if (IsArray) return null;
                 return _baseType;
             }
             set
@@ -139,7 +139,7 @@ namespace Il2CppDumper
         {
             get
             {
-                if (IsArray) return null;
+                // if (IsArray) return null;
                 return _typeName;
             }
             set
