@@ -79,11 +79,7 @@ namespace Il2CppDumper
         // is array?
         public bool IsArray
         {
-            get
-            {
-                return _cppTypeEnum == Il2CppTypeEnum.IL2CPP_TYPE_ARRAY
-                    || _cppTypeEnum == Il2CppTypeEnum.IL2CPP_TYPE_SZARRAY;
-            }
+            get; set;
         }
 
         // pointer indirection
@@ -195,5 +191,7 @@ namespace Il2CppDumper
                 _typeArguments = value;
             }
         }
+
+        public bool IsPrimitive { get; internal set; }
     }
 }

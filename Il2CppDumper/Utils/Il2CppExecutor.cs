@@ -146,8 +146,11 @@ namespace Il2CppDumper
                         var arrayType = il2Cpp.MapVATR<Il2CppArrayType>(il2CppType.data.array);
                         var elementType = il2Cpp.GetIl2CppType(arrayType.etype);
                         var elementTypeInfo = GetTypeInfo(elementType);
-                        typeInfo.ElementType = GetTypeInfo(elementType);
-                        return typeInfo;
+                        // hack: too lazy to special case consumption of array types
+                        elementTypeInfo.IsArray = true;
+                        return elementTypeInfo;
+                        // typeInfo.ElementType = GetTypeInfo(elementType);
+                        // return typeInfo;
                         // return $"{GetTypeName(elementType, addNamespace, false)}[{new string(',', arrayType.rank - 1)}]";
                     }
                 case Il2CppTypeEnum.IL2CPP_TYPE_SZARRAY:
