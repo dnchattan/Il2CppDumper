@@ -25,10 +25,10 @@ namespace Il2CppDumper
             Type = cppTypeInfo;
         }
 
+        public string ImageName;
         public Il2CppTypeInfo Type;
         public List<Il2CppFieldInfo> Fields = new List<Il2CppFieldInfo>();
         public List<Il2CppFieldInfo> StaticFields = new List<Il2CppFieldInfo>();
-        public List<Il2CppStaticMethodInfo> StaticMethods = new List<Il2CppStaticMethodInfo>();
     }
 
     public class Il2CppTypeInfo
@@ -64,7 +64,7 @@ namespace Il2CppDumper
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private List<Il2CppTypeInfo> _typeArguments = new List<Il2CppTypeInfo>();
         #endregion
-        
+
         public Il2CppTypeInfo(Il2CppType cppType)
         {
             this._cppType = cppType;

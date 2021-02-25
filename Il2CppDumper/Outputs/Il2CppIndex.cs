@@ -83,6 +83,7 @@ namespace Il2CppDumper
         private void AddStruct(Il2CppTypeDefinition typeDef, TypeDefinitionMetadata metadata)
         {
             var typeInfo = executor.GetTypeDefInfo(typeDef);
+            typeInfo.ImageName = metadata.ImageName;
             TypeInfoList.Add(typeInfo);
         }
 
