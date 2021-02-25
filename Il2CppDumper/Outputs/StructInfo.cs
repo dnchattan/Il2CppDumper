@@ -5,6 +5,7 @@ namespace Il2CppDumper
     public class StructInfo
     {
         public string ImageName;
+        public string Namespace;
         public string TypeName;
         public bool IsValueType;
         public bool IsGeneric;
@@ -29,6 +30,7 @@ namespace Il2CppDumper
     public class StructStaticMethodInfo
     {
         public ulong Address;
+        public string TypeArgs;
         public string Name;
     }
 
