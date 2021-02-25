@@ -156,8 +156,11 @@ namespace Il2CppDumper
                 case Il2CppTypeEnum.IL2CPP_TYPE_SZARRAY:
                     {
                         var elementType = il2Cpp.GetIl2CppType(il2CppType.data.type);
-                        typeInfo.ElementType = GetTypeInfo(elementType);
-                        return typeInfo;
+                        var elementTypeInfo = GetTypeInfo(elementType);
+                        elementTypeInfo.IsArray = true;
+                        return elementTypeInfo;
+                        // typeInfo.ElementType = GetTypeInfo(elementType);
+                        // return typeInfo;
                         // return $"{GetTypeName(elementType, addNamespace, false)}[]";
                     }
                 case Il2CppTypeEnum.IL2CPP_TYPE_PTR:
