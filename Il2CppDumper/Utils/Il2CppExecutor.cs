@@ -145,6 +145,10 @@ namespace Il2CppDumper
         public Il2CppTypeInfo GetTypeInfoInternal(Il2CppTypeDefinition typeDef, Il2CppType il2CppType, Il2CppGenericClass genericClass = null)
         {
             var typeInfo = new Il2CppTypeInfo(il2CppType);
+
+            // class types are _always_ pointers
+            ++typeInfo.Indirection;
+
             if (typeDef.declaringTypeIndex != -1)
             {
                 typeInfo.BaseType = GetTypeInfo(il2Cpp.types[typeDef.declaringTypeIndex]);
@@ -205,10 +209,7 @@ namespace Il2CppDumper
                         var arrayType = il2Cpp.MapVATR<Il2CppArrayType>(il2CppType.data.array);
                         var elementType = il2Cpp.GetIl2CppType(arrayType.etype);
                         var elementTypeInfo = GetTypeInfo(elementType);
-                        if (string.IsNullOrEmpty(elementTypeInfo.TypeName))
-                        {
-                            System.Diagnostics.Debugger.Break();
-                        }
+
                         // hack: too lazy to special case consumption of array types
                         elementTypeInfo.IsArray = true;
                         return elementTypeInfo;
