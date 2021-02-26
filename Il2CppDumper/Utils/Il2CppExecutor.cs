@@ -5,6 +5,63 @@ using static Il2CppDumper.Il2CppConstants;
 
 namespace Il2CppDumper
 {
+    public class UniqueTypeDefNameMap
+    {
+        private HashSet<string> _uniqueNames = new HashSet<string>();
+        private Dictionary<Il2CppType, string> _typeDefToName = new Dictionary<Il2CppType, string>();
+        private WeakReference<Il2CppExecutor> _executor;
+        public UniqueTypeDefNameMap(WeakReference<Il2CppExecutor> executor)
+        {
+            _executor = executor;
+        }
+
+        public string GetName(Il2CppTypeDefinition typeDef, string originalName)
+        {
+            Il2CppExecutor executor;
+            if (!_executor.TryGetTarget(out executor))
+            {
+                throw new InvalidOperationException("Cannot be used with disposed executor!");
+            }
+            var il2CppType = executor.GetIl2CppTypeFromTypeDefinition(typeDef);
+
+            return GetName(executor, typeDef, il2CppType, originalName);
+        }
+
+        public string GetName(Il2CppType il2CppType, string originalName)
+        {
+            if (_typeDefToName.ContainsKey(il2CppType))
+            {
+                return _typeDefToName[il2CppType].Split('|')[1];
+            }
+
+            Il2CppExecutor executor;
+            if (!_executor.TryGetTarget(out executor))
+            {
+                throw new InvalidOperationException("Cannot be used with disposed executor!");
+            }
+            var typeDef = executor.GetTypeDefinitionFromIl2CppType(il2CppType);
+
+            return GetName(executor, typeDef, il2CppType, originalName);
+        }
+
+        private string GetName(Il2CppExecutor executor, Il2CppTypeDefinition typeDef, Il2CppType il2CppType, string originalName)
+        {
+            if (_typeDefToName.ContainsKey(il2CppType))
+            {
+                return _typeDefToName[il2CppType].Split('|')[1];
+            }
+
+            var uniqueTypeNamePair = $"{typeDef.namespaceIndex}|{originalName}";
+            int n = 0;
+            while (_uniqueNames.Contains(uniqueTypeNamePair))
+            {
+                uniqueTypeNamePair = $"{typeDef.namespaceIndex}|_{++n}_{originalName}";
+            }
+            _uniqueNames.Add(uniqueTypeNamePair);
+            _typeDefToName[il2CppType] = uniqueTypeNamePair;
+            return uniqueTypeNamePair.Split('|')[1];
+        }
+    }
     public class Il2CppExecutor
     {
         public Metadata metadata;
@@ -32,11 +89,13 @@ namespace Il2CppDumper
         };
         public ulong[] customAttributeGenerators;
         private Dictionary<Il2CppTypeDefinition, int> TypeDefToIndex = new Dictionary<Il2CppTypeDefinition, int>();
+        private UniqueTypeDefNameMap TypeDefToName;
 
         public Il2CppExecutor(Metadata metadata, Il2Cpp il2Cpp)
         {
             this.metadata = metadata;
             this.il2Cpp = il2Cpp;
+            this.TypeDefToName = new UniqueTypeDefNameMap(new WeakReference<Il2CppExecutor>(this));
 
             if (il2Cpp.Version >= 27)
             {
@@ -102,7 +161,7 @@ namespace Il2CppDumper
             {
                 typeName = typeName.Substring(0, index);
             }
-            typeInfo.TypeName = typeName;
+            typeInfo.TypeName = TypeDefToName.GetName(typeDef, typeName);
 
             if (genericClass != null)
             {
@@ -183,6 +242,7 @@ namespace Il2CppDumper
                 case Il2CppTypeEnum.IL2CPP_TYPE_MVAR:
                     {
                         var param = GetGenericParameteFromIl2CppType(il2CppType);
+                        // just a string name, no unique constraints
                         typeInfo.TypeName = metadata.GetStringFromIndex(param.nameIndex);
                         return typeInfo;
                         //return metadata.GetStringFromIndex(param.nameIndex);
