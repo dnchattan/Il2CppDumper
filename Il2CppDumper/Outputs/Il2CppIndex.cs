@@ -93,6 +93,11 @@ namespace Il2CppDumper
             {
                 return;
             }
+            foreach (var (metadataUsageIndex, typeDefIndex) in metadata.metadataUsageDic[1]) //kIl2CppMetadataUsageTypeInfo
+            {
+                var type = il2Cpp.types[typeDefIndex];
+                executor.GetTypeInfo(type).Address = il2Cpp.GetRVA(il2Cpp.metadataUsages[metadataUsageIndex]);
+            }
             foreach (var (metadataUsageIndex, methodDefIndex) in metadata.metadataUsageDic[3]) //kIl2CppMetadataUsageMethodDef
             {
                 var methodDef = metadata.methodDefs[methodDefIndex];

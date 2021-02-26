@@ -63,6 +63,11 @@ namespace Il2CppDumper
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private List<Il2CppTypeInfo> _typeArguments = new List<Il2CppTypeInfo>();
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        private ulong _address;
+
+
         #endregion
 
         public Il2CppTypeInfo(Il2CppType cppType)
@@ -84,6 +89,9 @@ namespace Il2CppDumper
 
         // pointer indirection
         public int Indirection { get { return _indirection; } set { _indirection = value; } }
+
+        // type info address
+        public ulong Address { get { return _address; } set { _address = value; } }
 
         // if defined, this type is nested within another type,
         // e.g. class Foo { public class Bar { ... } }
