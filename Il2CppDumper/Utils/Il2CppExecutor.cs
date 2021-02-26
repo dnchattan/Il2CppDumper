@@ -192,8 +192,6 @@ namespace Il2CppDumper
                 var genericContainer = metadata.genericContainers[typeDef.genericContainerIndex];
                 var paramNames = GetGenericContainerParamNames(genericContainer);
                 typeInfo.TemplateArgumentNames.AddRange(paramNames);
-                // TODO
-                // str += GetGenericContainerParams(genericContainer);
             }
             return typeInfo;
         }
