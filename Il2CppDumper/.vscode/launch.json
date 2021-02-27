@@ -11,7 +11,11 @@
             "preLaunchTask": "clean and build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/netcoreapp3.1/Il2CppDumper.dll",
-            "args": ["D:\\RAID\\232\\GameAssembly.dll", "D:\\RAID\\232\\global-metadata.dat", "${workspaceFolder}\\.out"],
+            "args": [
+                "D:\\RAID\\233\\GameAssembly.dll",
+                "D:\\RAID\\233\\global-metadata.dat",
+                "${workspaceFolder}\\.out"
+            ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
