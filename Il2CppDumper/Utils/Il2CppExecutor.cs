@@ -89,6 +89,7 @@ namespace Il2CppDumper
         };
         public ulong[] customAttributeGenerators;
         private Dictionary<Il2CppTypeDefinition, int> TypeDefToIndex = new Dictionary<Il2CppTypeDefinition, int>();
+        private Dictionary<Il2CppType, long> TypeToIndex = new Dictionary<Il2CppType, long>();
         private UniqueTypeDefNameMap TypeDefToName;
 
         public Il2CppExecutor(Metadata metadata, Il2Cpp il2Cpp)
@@ -113,9 +114,13 @@ namespace Il2CppDumper
                 customAttributeGenerators = il2Cpp.customAttributeGenerators;
             }
 
-            for (var index = 0; index < metadata.typeDefs.Length; ++index)
+            for (int index = 0; index < metadata.typeDefs.Length; ++index)
             {
                 TypeDefToIndex[metadata.typeDefs[index]] = index;
+            }
+            for (long index = 0; index < il2Cpp.types.Length; ++index)
+            {
+                TypeToIndex[il2Cpp.types[index]] = index;
             }
         }
 
@@ -134,17 +139,23 @@ namespace Il2CppDumper
         public Il2CppTypeInfo GetTypeInfo(Il2CppTypeDefinition typeDef, Il2CppGenericClass genericClass = null)
         {
             var il2CppType = GetIl2CppTypeFromTypeDefinition(typeDef);
+            if (genericClass != null)
+            {
+                return GetTypeInfoInternal(typeDef, il2CppType, genericClass);
+            }
+
             if (TypeInfoCache.ContainsKey(il2CppType))
             {
                 return TypeInfoCache[il2CppType];
             }
-            return TypeInfoCache[il2CppType] = GetTypeInfoInternal(typeDef, il2CppType, genericClass);
+            return TypeInfoCache[il2CppType] = GetTypeInfoInternal(typeDef, il2CppType);
         }
 
 
         public Il2CppTypeInfo GetTypeInfoInternal(Il2CppTypeDefinition typeDef, Il2CppType il2CppType, Il2CppGenericClass genericClass = null)
         {
             var typeInfo = new Il2CppTypeInfo(il2CppType);
+            typeInfo.TypeIndex = TypeToIndex[il2CppType];
 
             // class types are _always_ pointers
             ++typeInfo.Indirection;
@@ -167,6 +178,12 @@ namespace Il2CppDumper
             }
             typeInfo.TypeName = TypeDefToName.GetName(typeDef, typeName);
 
+            if (typeDef.genericContainerIndex >= 0)
+            {
+                var genericContainer = metadata.genericContainers[typeDef.genericContainerIndex];
+                var paramNames = GetGenericContainerParamNames(genericContainer);
+                typeInfo.TemplateArgumentNames.AddRange(paramNames);
+            }
             if (genericClass != null)
             {
                 var genericInst = il2Cpp.MapVATR<Il2CppGenericInst>(genericClass.context.class_inst);
@@ -176,22 +193,26 @@ namespace Il2CppDumper
                     // generic argument
                     if (arg.type == Il2CppTypeEnum.IL2CPP_TYPE_VAR || arg.type == Il2CppTypeEnum.IL2CPP_TYPE_MVAR)
                     {
-                        var param = GetGenericParameteFromIl2CppType(arg);
-                        var tName = metadata.GetStringFromIndex(param.nameIndex);
-                        typeInfo.TemplateArgumentNames.Add(tName);
+                        // Are these used??
+
+                        // var param = GetGenericParameteFromIl2CppType(arg);
+                        // var tName = metadata.GetStringFromIndex(param.nameIndex);
+                        // typeInfo.TemplateArgumentNames.Add(tName);
                     }
                     else
                     {
-                        var tArg = GetTypeInfo(arg);
+                        var tArg = GetTypeInfoInternal(arg);
                         typeInfo.TypeArguments.Add(tArg);
+                        typeInfo.TypeName += $"_{tArg.TypeName}";
                     }
                 }
-            }
-            else if (typeDef.genericContainerIndex >= 0)
-            {
-                var genericContainer = metadata.genericContainers[typeDef.genericContainerIndex];
-                var paramNames = GetGenericContainerParamNames(genericContainer);
-                typeInfo.TemplateArgumentNames.AddRange(paramNames);
+                // concrete class impl should be derived from its base template type
+                // call internal version to create a copy, instead of using cached value
+                typeInfo.BaseType = GetTypeInfoInternal(il2CppType);
+                // copy type arguments to base, and remove from parent
+                typeInfo.BaseType.TypeArguments = typeInfo.TypeArguments;
+                typeInfo.TypeArguments = null;
+                typeInfo.TemplateArgumentNames = null;
             }
             return typeInfo;
         }
@@ -200,6 +221,7 @@ namespace Il2CppDumper
         public Il2CppTypeInfo GetTypeInfoInternal(Il2CppType il2CppType)
         {
             var typeInfo = new Il2CppTypeInfo(il2CppType);
+            typeInfo.TypeIndex = TypeToIndex[il2CppType];
             switch (il2CppType.type)
             {
                 case Il2CppTypeEnum.IL2CPP_TYPE_ARRAY:
@@ -219,10 +241,6 @@ namespace Il2CppDumper
                     {
                         var elementType = il2Cpp.GetIl2CppType(il2CppType.data.type);
                         var elementTypeInfo = GetTypeInfo(elementType);
-                        if (string.IsNullOrEmpty(elementTypeInfo.TypeName))
-                        {
-                            System.Diagnostics.Debugger.Break();
-                        }
                         elementTypeInfo.IsArray = true;
                         return elementTypeInfo;
                         // typeInfo.ElementType = GetTypeInfo(elementType);
@@ -233,6 +251,7 @@ namespace Il2CppDumper
                     {
                         var oriType = il2Cpp.GetIl2CppType(il2CppType.data.type);
                         var ptrType = GetTypeInfo(oriType);
+                        ptrType.TypeIndex = typeInfo.TypeIndex;
                         ++ptrType.Indirection;
                         return ptrType;
                         // return $"{GetTypeName(oriType, addNamespace, false)}*";
@@ -283,7 +302,7 @@ namespace Il2CppDumper
 
         private void AddFields(Il2CppTypeDefinition typeDef, Il2CppTypeDefinitionInfo typeDefInfo)
         {
-            var typeIndex = Array.IndexOf(metadata.typeDefs, typeDef);
+            var typeIndex = TypeDefToIndex[typeDef];
             if (typeDef.field_count > 0)
             {
                 var fieldEnd = typeDef.fieldStart + typeDef.field_count;
@@ -590,12 +609,7 @@ namespace Il2CppDumper
             {
                 throw new KeyNotFoundException("typedef not found");
             }
-            var type = Array.Find(il2Cpp.types, type => type.data.klassIndex == typeDefIndex);
-            if (type == null)
-            {
-                throw new KeyNotFoundException("typedef not found");
-            }
-            return type;
+            return il2Cpp.types[typeDef.byrefTypeIndex];
         }
 
         public Il2CppGenericParameter GetGenericParameteFromIl2CppType(Il2CppType il2CppType)

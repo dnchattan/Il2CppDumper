@@ -26,6 +26,7 @@ namespace Il2CppDumper
         }
 
         public string ImageName;
+        public bool IsGenericInstance;
         public Il2CppTypeInfo Type;
         public List<Il2CppFieldInfo> Fields = new List<Il2CppFieldInfo>();
         public List<Il2CppFieldInfo> StaticFields = new List<Il2CppFieldInfo>();
@@ -82,10 +83,9 @@ namespace Il2CppDumper
         public Il2CppTypeEnum Type { get { return _cppTypeEnum; } }
 
         // is array?
-        public bool IsArray
-        {
-            get; set;
-        }
+        public bool IsArray { get; set; }
+
+        public long TypeIndex { get; set; }
 
         // pointer indirection
         public int Indirection { get { return _indirection; } set { _indirection = value; } }
@@ -180,8 +180,6 @@ namespace Il2CppDumper
             get { return _templateArgumentNames; }
             set
             {
-                if (_typeArguments == null || _typeArguments.Count > 0)
-                    throw new InvalidOperationException("Cannot set template argument names type on a type with type arguments!");
                 _templateArgumentNames = value;
             }
         }
@@ -194,8 +192,6 @@ namespace Il2CppDumper
             get { return _typeArguments; }
             set
             {
-                if (_templateArgumentNames == null || _templateArgumentNames.Count > 0)
-                    throw new InvalidOperationException("Cannot set type arguments on a type with template arguments!");
                 _typeArguments = value;
             }
         }

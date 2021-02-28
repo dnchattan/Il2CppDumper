@@ -13,6 +13,7 @@ namespace Il2CppDumper
 
         private readonly Dictionary<Il2CppTypeDefinition, TypeDefinitionMetadata> TypeMetadata = new Dictionary<Il2CppTypeDefinition, TypeDefinitionMetadata>();
         private readonly Dictionary<string, Il2CppType> lookupGenericType = new Dictionary<string, Il2CppType>();
+        private readonly Dictionary<long, ulong> typeIndexToAddress = new Dictionary<long, ulong>();
         private readonly Dictionary<ulong, string> lookupGenericClassName = new Dictionary<ulong, string>();
         private readonly HashSet<ulong> genericClassList = new HashSet<ulong>();
 
@@ -78,13 +79,21 @@ namespace Il2CppDumper
             {
                 AddStruct(typeDef, metadata);
             }
+            // foreach (var ptr in genericClassList)
+            // {
+            //     var genericClass = il2Cpp.MapVATR<Il2CppGenericClass>(ptr);
+            //     var typeDef = executor.GetGenericClassTypeDefinition(genericClass);
+            //     var typeInfo = AddStruct(typeDef, TypeMetadata[typeDef], genericClass);
+            //     typeInfo.IsGenericInstance = true;
+            // }
         }
 
-        private void AddStruct(Il2CppTypeDefinition typeDef, TypeDefinitionMetadata metadata)
+        private Il2CppTypeDefinitionInfo AddStruct(Il2CppTypeDefinition typeDef, TypeDefinitionMetadata metadata, Il2CppGenericClass genericClass = null)
         {
-            var typeInfo = executor.GetTypeDefInfo(typeDef);
+            var typeInfo = executor.GetTypeDefInfo(typeDef, genericClass);
             typeInfo.ImageName = metadata.ImageName;
             TypeInfoList.Add(typeInfo);
+            return typeInfo;
         }
 
         private void IndexMetadataUsage()
@@ -92,11 +101,6 @@ namespace Il2CppDumper
             if (il2Cpp.Version <= 16 || il2Cpp.Version >= 27)
             {
                 return;
-            }
-            foreach (var (metadataUsageIndex, typeDefIndex) in metadata.metadataUsageDic[1]) //kIl2CppMetadataUsageTypeInfo
-            {
-                var type = il2Cpp.types[typeDefIndex];
-                executor.GetTypeInfo(type).Address = il2Cpp.GetRVA(il2Cpp.metadataUsages[metadataUsageIndex]);
             }
             foreach (var (metadataUsageIndex, methodDefIndex) in metadata.metadataUsageDic[3]) //kIl2CppMetadataUsageMethodDef
             {
@@ -166,6 +170,7 @@ namespace Il2CppDumper
                 var typeToReplaceName = executor.GetTypeDefName(baseTypeDef, true, true);
                 var typeReplaceName = executor.GetTypeName(il2CppType, true, false);
                 var typeStructName = typeBaseName.Replace(typeToReplaceName, typeReplaceName);
+                genericClassList.Add(il2CppType.data.generic_class);
                 lookupGenericType[typeStructName] = il2CppType;
                 lookupGenericClassName[il2CppType.data.generic_class] = typeStructName;
             }
