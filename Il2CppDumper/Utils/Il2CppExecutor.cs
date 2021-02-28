@@ -127,32 +127,32 @@ namespace Il2CppDumper
         /**/
         private Dictionary<Il2CppType, Il2CppTypeInfo> TypeInfoCache = new Dictionary<Il2CppType, Il2CppTypeInfo>();
 
-        public Il2CppTypeInfo GetTypeInfo(Il2CppType il2CppType)
+        public Il2CppTypeInfo GetTypeInfo(Il2CppType il2CppType, bool is_nested = false)
         {
             if (TypeInfoCache.ContainsKey(il2CppType))
             {
                 return TypeInfoCache[il2CppType];
             }
-            return TypeInfoCache[il2CppType] = GetTypeInfoInternal(il2CppType);
+            return TypeInfoCache[il2CppType] = GetTypeInfoInternal(il2CppType, is_nested);
         }
 
-        public Il2CppTypeInfo GetTypeInfo(Il2CppTypeDefinition typeDef, Il2CppGenericClass genericClass = null)
+        public Il2CppTypeInfo GetTypeInfo(Il2CppTypeDefinition typeDef, Il2CppGenericClass genericClass = null, bool is_nested = false)
         {
             var il2CppType = GetIl2CppTypeFromTypeDefinition(typeDef);
             if (genericClass != null)
             {
-                return GetTypeInfoInternal(typeDef, il2CppType, genericClass);
+                return GetTypeInfoInternal(typeDef, il2CppType, genericClass, is_nested);
             }
 
             if (TypeInfoCache.ContainsKey(il2CppType))
             {
                 return TypeInfoCache[il2CppType];
             }
-            return TypeInfoCache[il2CppType] = GetTypeInfoInternal(typeDef, il2CppType);
+            return TypeInfoCache[il2CppType] = GetTypeInfoInternal(typeDef, il2CppType, null, is_nested);
         }
 
 
-        public Il2CppTypeInfo GetTypeInfoInternal(Il2CppTypeDefinition typeDef, Il2CppType il2CppType, Il2CppGenericClass genericClass = null)
+        public Il2CppTypeInfo GetTypeInfoInternal(Il2CppTypeDefinition typeDef, Il2CppType il2CppType, Il2CppGenericClass genericClass = null, bool is_nested = false)
         {
             var typeInfo = new Il2CppTypeInfo(il2CppType);
             typeInfo.TypeIndex = TypeToIndex[il2CppType];
@@ -160,9 +160,17 @@ namespace Il2CppDumper
             // class types are _always_ pointers
             ++typeInfo.Indirection;
 
+            if (typeDef.parentIndex != -1)
+            {
+                var baseType = GetTypeInfo(il2Cpp.types[typeDef.parentIndex], is_nested);
+                if (!baseType.IsPrimitive && baseType.TypeIndex != typeInfo.TypeIndex)
+                {
+                    typeInfo.BaseType = baseType;
+                }
+            }
             if (typeDef.declaringTypeIndex != -1)
             {
-                typeInfo.BaseType = GetTypeInfo(il2Cpp.types[typeDef.declaringTypeIndex]);
+                typeInfo.DeclaringType = GetTypeInfo(il2Cpp.types[typeDef.declaringTypeIndex], true);
             }
             else
             {
@@ -177,6 +185,11 @@ namespace Il2CppDumper
                 typeName = typeName.Substring(0, index);
             }
             typeInfo.TypeName = TypeDefToName.GetName(typeDef, typeName);
+
+            if (is_nested)
+            {
+                return typeInfo;
+            }
 
             if (typeDef.genericContainerIndex >= 0)
             {
@@ -194,31 +207,22 @@ namespace Il2CppDumper
                     if (arg.type == Il2CppTypeEnum.IL2CPP_TYPE_VAR || arg.type == Il2CppTypeEnum.IL2CPP_TYPE_MVAR)
                     {
                         // Are these used??
-
-                        // var param = GetGenericParameteFromIl2CppType(arg);
-                        // var tName = metadata.GetStringFromIndex(param.nameIndex);
-                        // typeInfo.TemplateArgumentNames.Add(tName);
+                        var param = GetGenericParameteFromIl2CppType(arg);
+                        var tName = metadata.GetStringFromIndex(param.nameIndex);
+                        typeInfo.TemplateArgumentNames.Add(tName);
                     }
                     else
                     {
-                        var tArg = GetTypeInfoInternal(arg);
+                        var tArg = GetTypeInfoInternal(arg, true);
                         typeInfo.TypeArguments.Add(tArg);
-                        typeInfo.TypeName += $"_{tArg.TypeName}";
                     }
                 }
-                // concrete class impl should be derived from its base template type
-                // call internal version to create a copy, instead of using cached value
-                typeInfo.BaseType = GetTypeInfoInternal(il2CppType);
-                // copy type arguments to base, and remove from parent
-                typeInfo.BaseType.TypeArguments = typeInfo.TypeArguments;
-                typeInfo.TypeArguments = null;
-                typeInfo.TemplateArgumentNames = null;
             }
             return typeInfo;
         }
 
 
-        public Il2CppTypeInfo GetTypeInfoInternal(Il2CppType il2CppType)
+        public Il2CppTypeInfo GetTypeInfoInternal(Il2CppType il2CppType, bool is_nested = false)
         {
             var typeInfo = new Il2CppTypeInfo(il2CppType);
             typeInfo.TypeIndex = TypeToIndex[il2CppType];
@@ -228,7 +232,7 @@ namespace Il2CppDumper
                     {
                         var arrayType = il2Cpp.MapVATR<Il2CppArrayType>(il2CppType.data.array);
                         var elementType = il2Cpp.GetIl2CppType(arrayType.etype);
-                        var elementTypeInfo = GetTypeInfo(elementType);
+                        var elementTypeInfo = GetTypeInfo(elementType, is_nested);
 
                         // hack: too lazy to special case consumption of array types
                         elementTypeInfo.IsArray = true;
@@ -240,7 +244,7 @@ namespace Il2CppDumper
                 case Il2CppTypeEnum.IL2CPP_TYPE_SZARRAY:
                     {
                         var elementType = il2Cpp.GetIl2CppType(il2CppType.data.type);
-                        var elementTypeInfo = GetTypeInfo(elementType);
+                        var elementTypeInfo = GetTypeInfo(elementType, is_nested);
                         elementTypeInfo.IsArray = true;
                         return elementTypeInfo;
                         // typeInfo.ElementType = GetTypeInfo(elementType);
@@ -250,7 +254,7 @@ namespace Il2CppDumper
                 case Il2CppTypeEnum.IL2CPP_TYPE_PTR:
                     {
                         var oriType = il2Cpp.GetIl2CppType(il2CppType.data.type);
-                        var ptrType = GetTypeInfo(oriType);
+                        var ptrType = GetTypeInfo(oriType, is_nested);
                         ptrType.TypeIndex = typeInfo.TypeIndex;
                         ++ptrType.Indirection;
                         return ptrType;
@@ -280,7 +284,7 @@ namespace Il2CppDumper
                         {
                             typeDef = GetTypeDefinitionFromIl2CppType(il2CppType);
                         }
-                        return GetTypeInfo(typeDef, genericClass);
+                        return GetTypeInfo(typeDef, genericClass, is_nested);
                     }
                 default:
                     {
@@ -315,7 +319,7 @@ namespace Il2CppDumper
                         continue;
                     }
                     var structFieldInfo = new Il2CppFieldInfo();
-                    structFieldInfo.Type = GetTypeInfo(fieldType);
+                    structFieldInfo.Type = GetTypeInfoInternal(fieldType);
                     var fieldName = metadata.GetStringFromIndex(fieldDef.nameIndex);
                     structFieldInfo.Name = fieldName;
                     bool isStatic = (fieldType.attrs & FIELD_ATTRIBUTE_STATIC) != 0;
